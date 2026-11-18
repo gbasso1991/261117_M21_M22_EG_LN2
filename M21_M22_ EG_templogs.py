@@ -87,10 +87,29 @@ print('  CH1: Centro del criovial (temp_C)\n  CH2: Borde del criovial (temp_B)\n
 
 campos = {'100dA':(10.0*pendiente_HvsI+ordenada_HvsI)/1000,
           '075dA':(7.5*pendiente_HvsI+ordenada_HvsI)/1000,}
-#%%
+
+
+#%% ploteo individual para recortar 
+colors = ['C0','C1','C2','C3','C4','C5','C6']
+fig,ax = plt.subplots(1,1,figsize=(10,6),sharex=True,constrained_layout=True)
+
+for i,p in enumerate(temps_M22):
+    _,time,temp_C, temp_B = lector_templog(p,sincronizo_CH1_t=10,delta_T_min=0.8)
+
+    ax.plot(time,temp_C,'.-',c=colors[i],label=f'{campos["100dA"]:.1f} kA/m  - Centro') 
+    ax.plot(time,temp_B,'.-.',c=colors[i],label=f'{campos["100dA"]:.1f} kA/m  - Borde')
+ax.axvline(10,color='grey',ls='--',lw=1)
+ax.set_title(f'{os.path.basename(p)[14:]}',loc='left')
+ax.set_xlabel('Tiempo [s]')
+ax.grid()
+ax.set_xlim(0,)
+
+
+
+
+#%% M21 comparo por volumen
 titulo_1 = 'M21 Comparativa por volumen\nEG51% + FF49% --> LN2 --> 300 kHz & 38 / 29 kA/m '
-labels = ['']
-fig11,(ax1,ax2,ax3) = plt.subplots(3,1,figsize=(10,12),sharex=True,constrained_layout=True)
+fig1,(ax1,ax2,ax3) = plt.subplots(3,1,figsize=(10,12),sharex=True,constrained_layout=True)
 ax1.set_title('1 mL',loc='left')
 ax2.set_title('2 mL',loc='left')
 ax3.set_title('5 mL',loc='left')
@@ -125,12 +144,13 @@ for a in (ax1,ax2,ax3):
     #a.axvline(10,color='grey',ls='--',lw=1)
     a.set_ylabel('T (°C)')
 ax3.set_xlabel('t (s)')
+ax3.set_xlim(0,700)
 plt.suptitle(titulo_1)
 
-#%%
+#%% M22 Comparo por volumen
 titulo_2 = 'M22 Comparativa por volumen\nEG51% + FF49% --> LN2 --> 300 kHz & 38 / 29 kA/m '
 labels = ['']
-fig11,(ax1,ax2,ax3) = plt.subplots(3,1,figsize=(10,12),sharex=True,constrained_layout=True)
+fig2,(ax1,ax2,ax3) = plt.subplots(3,1,figsize=(10,12),sharex=True,constrained_layout=True)
 ax1.set_title('1 mL',loc='left')
 ax2.set_title('2 mL',loc='left')
 ax3.set_title('5 mL',loc='left')
@@ -164,11 +184,107 @@ for a in (ax1,ax2,ax3):
     a.legend(loc='best',shadow=True,frameon=True,ncol=1)
     #a.axvline(10,color='grey',ls='--',lw=1)
     a.set_ylabel('T (°C)')
+ax3.set_xlim(0,600)
 ax3.set_xlabel('t (s)')
 plt.suptitle(titulo_2)
 
+#%% Comparo por campo
+titulo_3 = 'M21 Comparativa por campo\nEG51% + FF49% --> LN2 --> 300 kHz & 38 / 29 kA/m '
 
+fig3,(ax1,ax2) = plt.subplots(2,1,figsize=(10,8),sharex=True,constrained_layout=True)
+ax1.set_title('29.2 kA/m',loc='left')
+ax2.set_title('38.5 kA/m',loc='left')
+ 
+for p in temps_M21:
+    _,time,temp_C, temp_B = lector_templog(p)
+    delta_CB = temp_C - temp_B
+    indx_max_DT = np.argmax(delta_CB) 
+    t_max_delta , T_max_delta = time[indx_max_DT] , temp_C[indx_max_DT]
+    if '1mL' in p and '075dA' in p:
+        ax1.plot(time,temp_C,'C0-',label=f'1 mL - Centro') 
+        ax1.plot(time,temp_B,'C0-.',label=f'1 mL - Borde')
+    
+    elif '2mL' in p and '075dA' in p:
+        ax1.plot(time,temp_C,'C1-',label=f'2 mL - Centro') 
+        ax1.plot(time,temp_B,'C1-.',label=f'2 mL - Borde')
+    
+    elif '5mL' in p and '075dA' in p:
+        ax1.plot(time,temp_C,'C2-',label=f'5 mL - Centro') 
+        ax1.plot(time,temp_B,'C2-.',label=f'5 mL - Borde')
+    
+    elif '1mL' in p and '100dA' in p:
+        ax2.plot(time,temp_C,'C0-',label=f'1 mL - Centro') 
+        ax2.plot(time,temp_B,'C0-.',label=f'1 mL - Borde')
+    
+    elif '2mL' in p and '100dA' in p:
+        ax2.plot(time,temp_C,'C1-',label=f'2 mL - Centro') 
+        ax2.plot(time,temp_B,'C1-.',label=f'2 mL - Borde')
+    
+    elif '5mL' in p and '100dA' in p:
+        ax2.plot(time,temp_C,'C2-',label=f'5 mL - Centro') 
+        ax2.plot(time,temp_B,'C2-.',label=f'5 mL - Borde')
+    
 
+for a in (ax1,ax2):
+    a.grid()
+    a.legend(loc='best',shadow=True,frameon=True,ncol=1)
+    #a.axvline(10,color='grey',ls='--',lw=1)
+    a.set_ylabel('T (°C)')
+ax2.set_xlabel('t (s)')
+ax2.set_xlim(0,700)
+plt.suptitle(titulo_3)
+
+#%%
+titulo_4 = 'M22 Comparativa por campo\nEG51% + FF49% --> LN2 --> 300 kHz & 38 / 29 kA/m '
+
+fig4,(ax1,ax2) = plt.subplots(2,1,figsize=(10,8),sharex=True,constrained_layout=True)
+ax1.set_title('29.2 kA/m',loc='left')
+ax2.set_title('38.5 kA/m',loc='left')
+ 
+for p in temps_M22:
+    _,time,temp_C, temp_B = lector_templog(p)
+    delta_CB = temp_C - temp_B
+    indx_max_DT = np.argmax(delta_CB) 
+    t_max_delta , T_max_delta = time[indx_max_DT] , temp_C[indx_max_DT]
+    if '2mL' in p and '075dA' in p:
+        ax1.plot(time,temp_C,'C0-',label=f'2 mL - Centro') 
+        ax1.plot(time,temp_B,'C0-.',label=f'2 mL - Borde')
+    
+    elif '3mL' in p and '075dA' in p:
+        ax1.plot(time,temp_C,'C1-',label=f'3 mL - Centro') 
+        ax1.plot(time,temp_B,'C1-.',label=f'3 mL - Borde')
+    
+    elif '5mL' in p and '075dA' in p:
+        ax1.plot(time,temp_C,'C2-',label=f'5 mL - Centro') 
+        ax1.plot(time,temp_B,'C2-.',label=f'5 mL - Borde')
+    
+    elif '2mL' in p and '100dA' in p:
+        ax2.plot(time,temp_C,'C0-',label=f'2 mL - Centro') 
+        ax2.plot(time,temp_B,'C0-.',label=f'2 mL - Borde')
+    
+    elif '3mL' in p and '100dA' in p:
+        ax2.plot(time,temp_C,'C1-',label=f'3 mL - Centro') 
+        ax2.plot(time,temp_B,'C1-.',label=f'3 mL - Borde')
+    
+    elif '5mL' in p and '100dA' in p:
+        ax2.plot(time,temp_C,'C2-',label=f'5 mL - Centro') 
+        ax2.plot(time,temp_B,'C2-.',label=f'5 mL - Borde')
+    
+
+for a in (ax1,ax2):
+    a.grid()
+    a.legend(loc='best',shadow=True,frameon=True,ncol=1)
+    #a.axvline(10,color='grey',ls='--',lw=1)
+    a.set_ylabel('T (°C)')
+ax2.set_xlabel('t (s)')
+ax2.set_xlim(0,600)
+plt.suptitle(titulo_4)
+
+#%% salvo figuras 
+fig1.savefig('M21_comparativa_Vol.png',dpi=300)
+fig2.savefig('M22_comparativa_Vol.png',dpi=300)
+fig3.savefig('M21_comparativa_campo.png',dpi=300)
+fig4.savefig('M22_comparativa_campo.png',dpi=300)
 
 
 
